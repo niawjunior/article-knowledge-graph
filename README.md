@@ -3,10 +3,11 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 <img width="1439" height="796" alt="image" src="https://github.com/user-attachments/assets/1facc56e-a72a-4b5b-82d2-c52daa250a58" />
 
-<img width="1440" height="800" alt="image" src="https://github.com/user-attachments/assets/e6473101-5b0c-4d79-bf10-40c90e93474f" />
+<img width="1436" height="792" alt="image" src="https://github.com/user-attachments/assets/d7959ef2-28bf-41a5-a790-5c14bb7dc1f4" />
 
 
-https://github.com/user-attachments/assets/19c371f1-80ad-4069-8104-4b93b4b17bd9
+https://github.com/user-attachments/assets/de7fb344-5867-4f13-ada9-2ce6b4eea170
+
 
 
 

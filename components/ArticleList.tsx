@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { FileText, Loader2 } from 'lucide-react';
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { FileText, Loader2 } from "lucide-react";
 
 interface Article {
   id: string;
@@ -20,11 +20,11 @@ export default function ArticleList() {
 
   const fetchArticles = async () => {
     try {
-      const response = await fetch('/api/articles');
+      const response = await fetch("/api/articles");
       const data = await response.json();
       setArticles(data.articles || []);
     } catch (error) {
-      console.error('Failed to fetch articles:', error);
+      console.error("Failed to fetch articles:", error);
     } finally {
       setIsLoading(false);
     }
@@ -45,7 +45,7 @@ export default function ArticleList() {
           No articles yet. Create your first one!
         </p>
       ) : (
-        <div className="space-y-2">
+        <div className="space-y-2 overflow-y-auto h-[calc(100vh-355px)]">
           {articles.map((article) => (
             <Link
               key={article.id}

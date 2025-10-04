@@ -18,6 +18,7 @@ import '@xyflow/react/dist/style.css';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import CustomNode from './CustomNode';
 import { KeyInsight } from '@/lib/graph-operations';
+import GraphQuery from './GraphQuery';
 
 interface GraphData {
   nodes: Array<{
@@ -220,9 +221,12 @@ export default function GraphVisualization({
   useEffect(() => {
     if (!graphData) return;
 
+    console.log('Rebuilding graph with highlighted nodes:', highlightedNodes);
     const data = graphData;
     const articleNode = data.nodes.find((n) => n.type === 'Article');
     const entityNodes = data.nodes.filter((n) => n.type !== 'Article');
+    
+    console.log('All node IDs in graph:', data.nodes.map(n => n.id));
 
     const flowNodes: Node[] = [];
 
@@ -367,6 +371,14 @@ export default function GraphVisualization({
     );
   }
 
+  const handleQueryHighlight = (nodeIds: string[]) => {
+    console.log('handleQueryHighlight called with:', nodeIds);
+    const nodeSet = new Set(nodeIds);
+    console.log('Setting highlighted nodes:', nodeSet);
+    setHighlightedNodes(nodeSet);
+    setSelectedInsightIndex(null);
+  };
+
   return (
     <div className="h-full w-full flex">
       {/* Key Insights Panel */}
@@ -448,6 +460,11 @@ export default function GraphVisualization({
             </button>
           </Panel>
         </ReactFlow>
+      </div>
+
+      {/* Graph Query Panel */}
+      <div className="w-96">
+        <GraphQuery articleId={articleId} onHighlight={handleQueryHighlight} />
       </div>
     </div>
   );

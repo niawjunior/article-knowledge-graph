@@ -1,5 +1,5 @@
 {
-  "name": "port-graph",
+  "name": "knowledge-graph",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -11,7 +11,11 @@
   "dependencies": {
     "react": "19.1.0",
     "react-dom": "19.1.0",
-    "next": "15.5.4"
+    "next": "15.5.4",
+    "@xyflow/react": "^12.3.2",
+    "neo4j-driver": "^5.26.0",
+    "openai": "^4.77.0",
+    "lucide-react": "^0.468.0"
   },
   "devDependencies": {
     "typescript": "^5",

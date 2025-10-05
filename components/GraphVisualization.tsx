@@ -123,27 +123,6 @@ export default function GraphVisualization({
         const sectionGap = vizConfig.layout.spacing.sectionGap;
 
         if (vizConfig.layout.direction === "LR") {
-          // Place article node at column 0
-          if (articleNode) {
-            flowNodes.push({
-              id: articleNode.id,
-              type: "custom",
-              position: { x: 50, y: 50 },
-              sourcePosition: Position.Right,
-              data: {
-                label: articleNode.name,
-                type: articleNode.type,
-                description: articleNode.description,
-                color: getNodeColor(
-                  articleNode.type,
-                  undefined,
-                  data.articleType
-                ),
-                isRoot: true,
-              },
-            });
-          }
-
           // Left-to-Right hierarchical layout using column order from config
           const nodesByDepth = new Map<number, typeof entityNodes>();
 
@@ -165,6 +144,32 @@ export default function GraphVisualization({
             nodesByDepth.get(depth)!.push(node);
           });
 
+          // Calculate total height to center the Article node
+          const firstColumnNodes = nodesByDepth.get(Math.min(...Array.from(nodesByDepth.keys()))) || [];
+          const totalHeight = firstColumnNodes.length * rowHeight;
+          const articleY = 50 + (totalHeight / 2) - (rowHeight / 2);
+
+          // Place article node at column 0, centered vertically
+          if (articleNode) {
+            flowNodes.push({
+              id: articleNode.id,
+              type: "custom",
+              position: { x: 50, y: articleY },
+              sourcePosition: Position.Right,
+              data: {
+                label: articleNode.name,
+                type: articleNode.type,
+                description: articleNode.description,
+                color: getNodeColor(
+                  articleNode.type,
+                  undefined,
+                  data.articleType
+                ),
+                isRoot: true,
+              },
+            });
+          }
+
           // Position nodes by depth (left to right) with proper spacing
           const sortedDepths = Array.from(nodesByDepth.keys()).sort(
             (a, b) => a - b
@@ -172,8 +177,9 @@ export default function GraphVisualization({
 
           sortedDepths.forEach((depth) => {
             const nodesAtDepth = nodesByDepth.get(depth)!;
-            // Start from column 1 (article is at column 0)
-            const x = 50 + depth * columnWidth;
+            // Start from column 1 (article is at column 0) with extra gap after article
+            const articleGap = vizConfig.layout.spacing.articleGap || 0;
+            const x = 50 + columnWidth + articleGap + (depth - 1) * columnWidth;
 
             nodesAtDepth.forEach((node, index) => {
               const y = 50 + index * rowHeight;

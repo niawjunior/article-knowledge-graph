@@ -11,6 +11,7 @@ export interface LayoutConfig {
     nodeHorizontal: number;
     nodeVertical: number;
     sectionGap: number;
+    articleGap?: number; // Extra spacing after the article node (for LR layouts)
   };
   groupBy?: "type" | "importance" | "sentiment" | "custom";
 }
@@ -145,8 +146,9 @@ export const VISUALIZATION_CONFIGS: Record<ArticleType, VisualizationConfig> = {
       direction: "LR", // Left to Right for financial flow (like Sankey diagram)
       spacing: {
         nodeHorizontal: 350,
-        nodeVertical: 100,
+        nodeVertical: 150, // Increased to prevent node overlap
         sectionGap: 80,
+        articleGap: 100, // Extra spacing after article node
       },
       groupBy: "custom", // Custom grouping for financial hierarchy
     },
@@ -162,23 +164,23 @@ export const VISUALIZATION_CONFIGS: Record<ArticleType, VisualizationConfig> = {
     priorityTypes: ["Revenue", "Profit", "Segment", "Organization"],
     sentimentOverride: false, // Use semantic colors, not sentiment
     columnOrder: {
-      // Column 1: Total revenue
-      "REVENUE METRIC": 1,
-      
-      // Column 2: Revenue breakdown by segment
-      "REVENUE STREAM": 2,
-      
+      // Column 1: Revenue breakdown by segment (sources)
+      "REVENUE STREAM": 1,
+
+      // Column 2: Revenue metrics (aggregates)
+      "REVENUE METRIC": 2,
+
       // Column 3: Supporting context
-      "ORGANIZATION": 3,
+      ORGANIZATION: 3,
       "CUSTOMER SEGMENT": 3,
       "GEOGRAPHIC MARKET": 3,
-      
+
       // Column 4: Time period
       "TIME PERIOD": 4,
-      "DATE": 4,
-      
+      DATE: 4,
+
       // Column 5: Other concepts
-      "CONCEPT": 5,
+      CONCEPT: 5,
     },
   },
 
@@ -263,8 +265,9 @@ export const VISUALIZATION_CONFIGS: Record<ArticleType, VisualizationConfig> = {
       direction: "LR",
       spacing: {
         nodeHorizontal: 280,
-        nodeVertical: 130,
+        nodeVertical: 150, // Increased to prevent node overlap
         sectionGap: 70,
+        articleGap: 200, // Extra spacing after article node
       },
       groupBy: "custom",
     },
@@ -280,33 +283,33 @@ export const VISUALIZATION_CONFIGS: Record<ArticleType, VisualizationConfig> = {
     priorityTypes: ["Revenue", "RevenueStream", "Product", "Customer"],
     sentimentOverride: false,
     columnOrder: {
-      // Column 1: Total revenue
-      "Revenue": 1,
-      "REVENUE METRIC": 1,
-      
-      // Column 2: Revenue streams
-      "RevenueStream": 2,
-      "REVENUE STREAM": 2,
-      
+      // Column 1: Revenue streams
+      RevenueStream: 1,
+      "REVENUE STREAM": 1,
+
+      // Column 2: Total revenue
+      Revenue: 2,
+      "REVENUE METRIC": 2,
+
       // Column 3: Products and services
-      "Product": 3,
-      "Service": 3,
-      
+      Product: 3,
+      Service: 3,
+
       // Column 4: Customers and segments
-      "Customer": 4,
-      "Segment": 4,
+      Customer: 4,
+      Segment: 4,
       "CUSTOMER SEGMENT": 4,
-      
+
       // Column 5: Channels and markets
-      "Channel": 5,
-      "Market": 5,
+      Channel: 5,
+      Market: 5,
       "GEOGRAPHIC MARKET": 5,
-      
+
       // Column 6: Context
-      "ORGANIZATION": 6,
-      "DATE": 6,
+      ORGANIZATION: 6,
+      DATE: 6,
       "TIME PERIOD": 6,
-      "CONCEPT": 6,
+      CONCEPT: 6,
     },
   },
 
@@ -413,31 +416,31 @@ export const VISUALIZATION_CONFIGS: Record<ArticleType, VisualizationConfig> = {
     sentimentOverride: false, // Use semantic colors
     columnOrder: {
       // Column 1: Threat actors
-      "Attacker": 1,
-      "ThreatActor": 1,
-      
+      Attacker: 1,
+      ThreatActor: 1,
+
       // Column 2: Attack methods
-      "Vulnerability": 2,
-      "Exploit": 2,
-      "Malware": 2,
-      "AttackVector": 2,
-      
+      Vulnerability: 2,
+      Exploit: 2,
+      Malware: 2,
+      AttackVector: 2,
+
       // Column 3: Targets
-      "Victim": 3,
-      "System": 3,
-      "Data": 3,
-      
+      Victim: 3,
+      System: 3,
+      Data: 3,
+
       // Column 4: Detection and response
-      "SecurityTool": 4,
-      "Detection": 4,
-      
+      SecurityTool: 4,
+      Detection: 4,
+
       // Column 5: Context
-      "ORGANIZATION": 5,
-      "Technology": 5,
-      "DATE": 5,
+      ORGANIZATION: 5,
+      Technology: 5,
+      DATE: 5,
       "TIME PERIOD": 5,
-      "Location": 5,
-      "CONCEPT": 5,
+      Location: 5,
+      CONCEPT: 5,
     },
   },
 

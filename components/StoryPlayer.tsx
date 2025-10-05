@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Play, Pause, SkipForward, SkipBack, X, Loader2, Volume2, VolumeX } from "lucide-react";
+import { Play, Pause, SkipForward, SkipBack, X, Loader2, Volume2, VolumeX, Minimize2, Maximize2 } from "lucide-react";
 
 interface StoryChapter {
   chapter: number;
@@ -29,28 +29,56 @@ export default function StoryPlayer({
   const [progress, setProgress] = useState(0);
   const [audioEnabled, setAudioEnabled] = useState(true);
   const [isGeneratingAudio, setIsGeneratingAudio] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(false);
   const onHighlightRef = useRef(onHighlight);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const lastPlayedChapterRef = useRef<number>(-1);
+  const isFetchingRef = useRef(false);
 
   // Keep ref updated
   useEffect(() => {
     onHighlightRef.current = onHighlight;
   }, [onHighlight]);
 
-  // Fetch story
+  // Fetch story only once per article (with caching)
   useEffect(() => {
+    const cacheKey = `story-${articleId}`;
+    
     const fetchStory = async () => {
+      // Prevent duplicate fetches
+      if (isFetchingRef.current) {
+        return;
+      }
+
       try {
+        // Check if story is cached in sessionStorage
+        const cached = sessionStorage.getItem(cacheKey);
+        if (cached) {
+          const cachedData = JSON.parse(cached);
+          setStory(cachedData);
+          setIsLoading(false);
+          return;
+        }
+
+        // Mark as fetching
+        isFetchingRef.current = true;
+
+        // Fetch from API if not cached
         const response = await fetch(`/api/articles/${articleId}/story`);
         if (!response.ok) throw new Error("Failed to fetch story");
         const data = await response.json();
+        
+        // Cache the story
+        sessionStorage.setItem(cacheKey, JSON.stringify(data.story));
+        
         setStory(data.story);
         setIsLoading(false);
       } catch (error) {
         console.error("Error fetching story:", error);
         setIsLoading(false);
+      } finally {
+        isFetchingRef.current = false;
       }
     };
 
@@ -323,6 +351,80 @@ export default function StoryPlayer({
 
   const chapter = story[currentChapter];
 
+  // Minimized view
+  if (isMinimized) {
+    return (
+      <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-slate-900 to-slate-800 text-white shadow-2xl border-t border-slate-700 z-50">
+        {/* Progress Bar */}
+        <div className="h-1 bg-slate-700">
+          <div
+            className="h-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-100"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+
+        <div className="max-w-6xl mx-auto px-6 py-3 flex items-center gap-4">
+          {/* Play/Pause */}
+          <button
+            onClick={handlePlayPause}
+            className="p-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 rounded-full transition-all"
+            title={isPlaying ? "Pause" : "Play"}
+          >
+            {isPlaying ? (
+              <Pause className="w-4 h-4" />
+            ) : (
+              <Play className="w-4 h-4 ml-0.5" />
+            )}
+          </button>
+
+          {/* Chapter info */}
+          <div className="flex-1">
+            <p className="text-sm font-medium truncate">{chapter.title}</p>
+            <p className="text-xs text-slate-400">
+              Chapter {chapter.chapter} of {story.length} • {Math.round(progress)}% complete
+            </p>
+          </div>
+
+          {/* Audio toggle */}
+          <button
+            onClick={() => setAudioEnabled(!audioEnabled)}
+            className={`p-2 rounded-full transition-colors ${
+              audioEnabled
+                ? "bg-blue-600 hover:bg-blue-500"
+                : "bg-slate-700 hover:bg-slate-600"
+            }`}
+            title={audioEnabled ? "Mute" : "Unmute"}
+          >
+            {audioEnabled ? (
+              <Volume2 className="w-4 h-4" />
+            ) : (
+              <VolumeX className="w-4 h-4" />
+            )}
+          </button>
+
+          {/* Maximize */}
+          <button
+            onClick={() => setIsMinimized(false)}
+            className="p-2 hover:bg-slate-700 rounded-lg transition-colors"
+            title="Expand"
+          >
+            <Maximize2 className="w-4 h-4" />
+          </button>
+
+          {/* Close */}
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-slate-700 rounded-lg transition-colors"
+            title="Close"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Full view
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-slate-900 via-slate-800 to-slate-900/95 text-white shadow-2xl border-t border-slate-700 z-50">
       {/* Progress Bar */}
@@ -334,14 +436,23 @@ export default function StoryPlayer({
       </div>
 
       <div className="max-w-6xl mx-auto p-6">
-        {/* Close Button */}
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 p-2 hover:bg-slate-700 rounded-lg transition-colors"
-          title="Close Story"
-        >
-          <X className="w-5 h-5" />
-        </button>
+        {/* Control Buttons */}
+        <div className="absolute top-4 right-4 flex gap-2">
+          <button
+            onClick={() => setIsMinimized(true)}
+            className="p-2 hover:bg-slate-700 rounded-lg transition-colors"
+            title="Minimize"
+          >
+            <Minimize2 className="w-5 h-5" />
+          </button>
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-slate-700 rounded-lg transition-colors"
+            title="Close Story"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
 
         {/* Chapter Content */}
         <div className="mb-6">

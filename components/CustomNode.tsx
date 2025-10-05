@@ -1,29 +1,36 @@
 "use client";
 
-import { memo, useState } from 'react';
-import { Handle, Position, NodeProps } from '@xyflow/react';
-import { Info } from 'lucide-react';
+import { memo, useState } from "react";
+import { Handle, Position, NodeProps, Node } from "@xyflow/react";
+import { Info } from "lucide-react";
 
-interface CustomNodeData {
+export type CustomNodeData = {
   label: string;
   type: string;
   description?: string;
   color: string;
   isRoot?: boolean;
-}
+  sentiment?: string;
+  importance?: string;
+  [key: string]: unknown;
+};
 
-function CustomNode({ data }: NodeProps<CustomNodeData>) {
+// 👇 Define the actual RF node type that wraps your data
+export type CustomRFNode = Node<CustomNodeData, "custom">;
+
+function CustomNode({ data, sourcePosition, targetPosition }: NodeProps<CustomRFNode>) {
   const [showTooltip, setShowTooltip] = useState(false);
-  const isRoot = data.isRoot || false;
+  const isRoot = data.isRoot ?? false;
+
   return (
     <div className="relative">
-      <Handle type="target" position={Position.Top} />
+      <Handle type="target" position={targetPosition || Position.Top} />
 
       <div
         className={`rounded-lg shadow-lg border-2 bg-white dark:bg-slate-800 cursor-pointer hover:shadow-xl transition-all ${
           isRoot
-            ? 'px-6 py-4 min-w-[250px] max-w-[350px] border-4'
-            : 'px-4 py-3 min-w-[150px] max-w-[200px]'
+            ? "px-6 py-4 min-w-[250px] max-w-[350px] border-4"
+            : "px-4 py-3 min-w-[150px] max-w-[200px]"
         }`}
         style={{ borderColor: data.color }}
         onMouseEnter={() => setShowTooltip(true)}
@@ -31,12 +38,14 @@ function CustomNode({ data }: NodeProps<CustomNodeData>) {
       >
         <div className="flex items-center gap-2 mb-1">
           <div
-            className={`rounded-full flex-shrink-0 ${isRoot ? 'w-4 h-4' : 'w-3 h-3'}`}
+            className={`rounded-full flex-shrink-0 ${
+              isRoot ? "w-4 h-4" : "w-3 h-3"
+            }`}
             style={{ backgroundColor: data.color }}
           />
           <span
             className={`font-semibold text-slate-600 dark:text-slate-400 uppercase ${
-              isRoot ? 'text-sm' : 'text-xs'
+              isRoot ? "text-sm" : "text-xs"
             }`}
           >
             {data.type}
@@ -45,7 +54,7 @@ function CustomNode({ data }: NodeProps<CustomNodeData>) {
 
         <div
           className={`font-medium text-slate-900 dark:text-white break-words ${
-            isRoot ? 'text-lg' : 'text-sm'
+            isRoot ? "text-lg" : "text-sm"
           }`}
         >
           {data.label}
@@ -53,7 +62,9 @@ function CustomNode({ data }: NodeProps<CustomNodeData>) {
 
         {data.description && (
           <div className="mt-1">
-            <Info className={`text-slate-400 ${isRoot ? 'w-4 h-4' : 'w-3 h-3'}`} />
+            <Info
+              className={`text-slate-400 ${isRoot ? "w-4 h-4" : "w-3 h-3"}`}
+            />
           </div>
         )}
       </div>
@@ -65,7 +76,7 @@ function CustomNode({ data }: NodeProps<CustomNodeData>) {
         </div>
       )}
 
-      <Handle type="source" position={Position.Bottom} />
+      <Handle type="source" position={sourcePosition || Position.Bottom} />
     </div>
   );
 }

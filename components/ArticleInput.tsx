@@ -3,10 +3,12 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { FileText, Loader2 } from 'lucide-react';
+import { ARTICLE_TYPES, ArticleType } from '@/lib/article-types';
 
 export default function ArticleInput() {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [articleType, setArticleType] = useState<ArticleType>('general');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
@@ -22,7 +24,7 @@ export default function ArticleInput() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ title, content }),
+        body: JSON.stringify({ title, content, articleType }),
       });
 
       const data = await response.json();
@@ -50,6 +52,30 @@ export default function ArticleInput() {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label
+            htmlFor="articleType"
+            className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
+          >
+            Article Type *
+          </label>
+          <select
+            id="articleType"
+            value={articleType}
+            onChange={(e) => setArticleType(e.target.value as ArticleType)}
+            className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-slate-700 dark:text-white"
+          >
+            {ARTICLE_TYPES.map((type) => (
+              <option key={type.id} value={type.id}>
+                {type.label}
+              </option>
+            ))}
+          </select>
+          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+            {ARTICLE_TYPES.find(t => t.id === articleType)?.description}
+          </p>
+        </div>
+
         <div>
           <label
             htmlFor="title"

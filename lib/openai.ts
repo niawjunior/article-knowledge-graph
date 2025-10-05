@@ -1,4 +1,5 @@
 import OpenAI from 'openai';
+import { ArticleType, getArticleTypeConfig } from './article-types';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -7,7 +8,7 @@ const openai = new OpenAI({
 export interface Entity {
   id: string;
   name: string;
-  type: 'Person' | 'Organization' | 'Location' | 'Concept' | 'Event' | 'Date' | 'Technology';
+  type: string; // Dynamic type based on article type (e.g., REVENUE METRIC, REVENUE STREAM, etc.)
   description?: string;
   sentiment?: 'positive' | 'negative' | 'neutral';
   importance?: 'high' | 'medium' | 'low';
@@ -29,45 +30,27 @@ export interface ExtractedData {
 
 export async function extractEntitiesFromArticle(
   articleText: string,
-  articleTitle?: string
+  articleTitle?: string,
+  articleType: ArticleType = 'general'
 ): Promise<ExtractedData> {
-  const prompt = `You are an expert analyst specializing in news, security incidents, and business intelligence.
-Analyze the following article and extract a knowledge graph with rich context.
-
-IMPORTANT: Keep all entity names, descriptions, and relationships in the SAME LANGUAGE as the original article. Do NOT translate to English.
+  // Get the appropriate system prompt based on article type
+  const typeConfig = getArticleTypeConfig(articleType);
+  
+  const prompt = `${typeConfig.systemPrompt}
 
 Article Title: ${articleTitle || 'Untitled'}
 Article Text:
 ${articleText}
 
-Extract:
-1. **Entities** with context:
-   - Organizations (companies, institutions, hacker groups)
-   - People (executives, analysts, attackers)
-   - Technology (software, systems, platforms)
-   - Events (breaches, announcements, incidents)
-   - Concepts (security concepts, business impacts)
-   - Locations (countries, cities, regions)
-   - Dates (when events occurred)
-
-2. **Relationships** with semantic meaning:
-   - Use specific relationship types like: "attacked-by", "victim-of", "owns", "uses", "affected-by", "leaked-from", "reported-by", "contains", "targets", "supplies-to", "competes-with", "partners-with"
-   - Avoid generic "mentions" or "related-to" unless no specific relationship exists
-   - Include relationship strength (strong/medium/weak)
-
-3. **Metadata**:
-   - Entity sentiment: positive (good news), negative (victim/problem), neutral
-   - Entity importance: high (key players), medium (supporting), low (minor mentions)
-
-Return JSON:
+Return JSON in this exact format:
 {
   "summary": "Concise summary highlighting key facts and impact",
   "entities": [
     {
       "id": "kebab-case-id",
       "name": "Entity Name",
-      "type": "Person|Organization|Location|Concept|Event|Date|Technology",
-      "description": "What this entity is and its role in the story",
+      "type": "Use the entity types specified in the system prompt above",
+      "description": "What this entity is and its role in the context",
       "sentiment": "positive|negative|neutral",
       "importance": "high|medium|low"
     }
@@ -81,17 +64,7 @@ Return JSON:
       "strength": "strong|medium|weak"
     }
   ]
-}
-
-Rules:
-- Extract 8-20 entities (focus on quality over quantity)
-- Create 10-30 relationships (build a rich network)
-- Use specific, actionable relationship types
-- Mark victims/attackers with appropriate sentiment
-- Prioritize entities by their importance to the story
-- For security incidents: identify attacker, victim, method, impact, affected parties
-- For business news: identify companies, products, market impact, stakeholders
-`;
+}`;
 
   const response = await openai.chat.completions.create({
     model: 'gpt-4o-mini',

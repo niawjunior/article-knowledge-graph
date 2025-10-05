@@ -95,9 +95,11 @@ ${relationships.map((r) => {
 When answering:
 1. Be concise and specific
 2. Reference actual entities and relationships from the graph
-3. IMPORTANT: If the answer involves specific entities, list their EXACT IDs (from the "ID | Name" format) in your response as [HIGHLIGHT: id1, id2, id3]
-   Example: If mentioning "Apple" with ID "apple", include [HIGHLIGHT: apple]
-   Example: If mentioning "Huawei" (ID: huawei) and "China" (ID: china), include [HIGHLIGHT: huawei, china]
+3. IMPORTANT: If the answer involves specific entities, you MUST list ALL their EXACT IDs (from the "ID | Name" format) in your response as [HIGHLIGHT: id1, id2, id3, ...]
+   - If asked "Who are the key people?", include ALL person IDs: [HIGHLIGHT: person1, person2, person3, person4]
+   - If asked about organizations, include ALL organization IDs
+   - Example: If mentioning "Apple" with ID "apple", include [HIGHLIGHT: apple]
+   - Example: If mentioning "Huawei" (ID: huawei) and "China" (ID: china), include [HIGHLIGHT: huawei, china]
 4. If the question cannot be answered from the graph, say so clearly
 5. Use the same language as the question (if asked in Thai, answer in Thai)`,
           },
@@ -121,12 +123,40 @@ When answering:
         // If AI didn't provide IDs, try to extract entity names from the answer
         // and find their IDs
         const mentionedEntities: string[] = [];
-        entities.forEach((entity) => {
-          if (rawAnswer.includes(entity.name)) {
-            mentionedEntities.push(entity.id);
-          }
-        });
-        highlightNodes = mentionedEntities.slice(0, 5); // Limit to 5
+        
+        // Check if question is asking for all entities of a type
+        const lowerQuestion = question.toLowerCase();
+        if (lowerQuestion.includes('people') || lowerQuestion.includes('คน')) {
+          // Return all Person entities
+          entities.forEach((entity) => {
+            if (entity.type === 'Person') {
+              mentionedEntities.push(entity.id);
+            }
+          });
+        } else if (lowerQuestion.includes('organization') || lowerQuestion.includes('องค์กร')) {
+          // Return all Organization entities
+          entities.forEach((entity) => {
+            if (entity.type === 'Organization') {
+              mentionedEntities.push(entity.id);
+            }
+          });
+        } else if (lowerQuestion.includes('location') || lowerQuestion.includes('สถานที่')) {
+          // Return all Location entities
+          entities.forEach((entity) => {
+            if (entity.type === 'Location') {
+              mentionedEntities.push(entity.id);
+            }
+          });
+        } else {
+          // Otherwise, find entities mentioned by name in the answer
+          entities.forEach((entity) => {
+            if (rawAnswer.includes(entity.name)) {
+              mentionedEntities.push(entity.id);
+            }
+          });
+        }
+        
+        highlightNodes = mentionedEntities.slice(0, 10); // Limit to 10
       }
 
       // Debug logging

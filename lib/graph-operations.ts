@@ -26,6 +26,7 @@ export interface GraphData {
   nodes: GraphNode[];
   edges: GraphEdge[];
   keyInsights?: KeyInsight[];
+  articleType?: string;
 }
 
 export async function createArticleGraph(
@@ -34,7 +35,8 @@ export async function createArticleGraph(
   content: string,
   summary: string,
   entities: Entity[],
-  relationships: Relationship[]
+  relationships: Relationship[],
+  articleType?: string
 ): Promise<void> {
   const session = getSession();
 
@@ -46,9 +48,10 @@ export async function createArticleGraph(
       SET a.title = $title,
           a.content = $content,
           a.summary = $summary,
+          a.articleType = $articleType,
           a.createdAt = datetime()
       `,
-      { articleId, title, content, summary }
+      { articleId, title, content, summary, articleType: articleType || 'general' }
     );
 
     // Create entity nodes
@@ -113,9 +116,11 @@ export async function getArticleGraph(articleId: string): Promise<GraphData> {
     const edges: GraphEdge[] = [];
     const nodeIds = new Set<string>();
 
-    // Add article node
+    // Add article node and get article type
+    let articleType = 'general';
     if (result.records.length > 0) {
       const article = result.records[0].get('a').properties;
+      articleType = article.articleType || 'general';
       nodes.push({
         id: articleId,
         name: article.title,
@@ -207,7 +212,7 @@ export async function getArticleGraph(articleId: string): Promise<GraphData> {
       }
     });
 
-    return { nodes, edges, keyInsights };
+    return { nodes, edges, keyInsights, articleType };
   } finally {
     await session.close();
   }

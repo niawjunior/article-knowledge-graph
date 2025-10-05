@@ -38,32 +38,43 @@ export interface VisualizationConfig {
   columnOrder?: Record<string, number>; // For LR layouts: entity type -> column number
 }
 
-// Base color palette
+// Base color palette - maps entity types to colors
 const BASE_COLORS = {
-  // Entity types
-  Article: "#3b82f6", // blue
-  Person: "#10b981", // green
-  Organization: "#8b5cf6", // purple
-  Location: "#f59e0b", // amber
-  Concept: "#ec4899", // pink
-  Event: "#ef4444", // red
-  Date: "#6366f1", // indigo
-  Technology: "#06b6d4", // cyan
-
-  // Sentiment
+  // Sentiment colors
   positive: "#16a34a", // green-600
   negative: "#dc2626", // red-600
   neutral: "#64748b", // slate-500
 
-  // Financial specific
-  Revenue: "#10b981", // green
-  Profit: "#059669", // emerald-600
-  Cost: "#ef4444", // red
-  Expense: "#f97316", // orange
+  // General entity types
+  Person: "#10b981", // green
+  Organization: "#8b5cf6", // purple
+  Location: "#f59e0b", // amber
+  Technology: "#06b6d4", // cyan
+  Event: "#ef4444", // red
+  Concept: "#ec4899", // pink
+  Date: "#6366f1", // indigo
+
+  // Investment entity types
+  Company: "#3b82f6", // blue
+  Investor: "#8b5cf6", // purple
+  Fund: "#6366f1", // indigo
+  Valuation: "#10b981", // green
+  Investment: "#14b8a6", // teal
+  Round: "#06b6d4", // cyan
+  Sector: "#a855f7", // purple-500
   Metric: "#3b82f6", // blue
-  Segment: "#8b5cf6", // purple
-  Period: "#6366f1", // indigo
-  Margin: "#14b8a6", // teal
+
+  // Revenue entity types
+  RevenueMetric: "#10b981", // green
+  RevenueStream: "#14b8a6", // teal
+  Product: "#3b82f6", // blue
+  Service: "#06b6d4", // cyan
+  Customer: "#a855f7", // purple-500
+  CustomerSegment: "#a855f7", // purple-500
+  Channel: "#f59e0b", // amber
+  Market: "#f97316", // orange
+  GeographicMarket: "#f97316", // orange
+  TimePeriod: "#6366f1", // indigo
 };
 
 export const VISUALIZATION_CONFIGS: Record<ArticleType, VisualizationConfig> = {
@@ -72,14 +83,8 @@ export const VISUALIZATION_CONFIGS: Record<ArticleType, VisualizationConfig> = {
     name: "General Layout",
     description: "Balanced layout for mixed content",
     nodeColors: {
-      Article: BASE_COLORS.Article,
-      Person: BASE_COLORS.Person,
-      Organization: BASE_COLORS.Organization,
-      Location: BASE_COLORS.Location,
-      Concept: BASE_COLORS.Concept,
-      Event: BASE_COLORS.Event,
-      Date: BASE_COLORS.Date,
-      Technology: BASE_COLORS.Technology,
+      // Use BASE_COLORS - normalization handles all variations
+      ...BASE_COLORS,
     },
     layout: {
       type: "grid",
@@ -99,89 +104,8 @@ export const VISUALIZATION_CONFIGS: Record<ArticleType, VisualizationConfig> = {
       highlightColor: "#fbbf24",
       animated: false,
     },
-    priorityTypes: ["Organization", "Person", "Event"],
+    priorityTypes: [],
     sentimentOverride: true,
-  },
-
-  "financial-statement": {
-    articleType: "financial-statement",
-    name: "Financial Flow",
-    description: "Hierarchical layout showing financial statement flow",
-    nodeColors: {
-      Article: BASE_COLORS.Article,
-      Organization: BASE_COLORS.Organization,
-      ORGANIZATION: BASE_COLORS.Organization,
-
-      // Financial metrics with semantic colors (uppercase versions for dynamic entities)
-      "REVENUE METRIC": BASE_COLORS.Revenue,
-      "REVENUE STREAM": "#059669", // emerald-600
-      Revenue: BASE_COLORS.Revenue,
-      Profit: BASE_COLORS.Profit,
-      Cost: BASE_COLORS.Cost,
-      Expense: BASE_COLORS.Expense,
-      Metric: BASE_COLORS.Metric,
-
-      // Business structure
-      Segment: BASE_COLORS.Segment,
-      "CUSTOMER SEGMENT": BASE_COLORS.Segment,
-      "GEOGRAPHIC MARKET": BASE_COLORS.Location,
-      Division: "#a855f7", // purple-500
-      Department: "#c084fc", // purple-400
-
-      // Time and context
-      "TIME PERIOD": BASE_COLORS.Period,
-      Period: BASE_COLORS.Period,
-      Date: BASE_COLORS.Date,
-      DATE: BASE_COLORS.Date,
-      Margin: BASE_COLORS.Margin,
-      Percentage: "#06b6d4", // cyan
-
-      // Fallback for Concept/Event
-      Concept: BASE_COLORS.Concept,
-      CONCEPT: BASE_COLORS.Concept,
-      Event: BASE_COLORS.Event,
-    },
-    layout: {
-      type: "hierarchical",
-      direction: "LR", // Left to Right for financial flow (like Sankey diagram)
-      spacing: {
-        nodeHorizontal: 350,
-        nodeVertical: 150, // Increased to prevent node overlap
-        sectionGap: 80,
-        articleGap: 100, // Extra spacing after article node
-      },
-      groupBy: "custom", // Custom grouping for financial hierarchy
-    },
-    edgeStyle: {
-      defaultWidth: 2,
-      strongWidth: 3.5,
-      highlightWidth: 5,
-      defaultColor: "#64748b",
-      strongColor: "#3b82f6",
-      highlightColor: "#fbbf24",
-      animated: true, // Animate to show flow
-    },
-    priorityTypes: ["Revenue", "Profit", "Segment", "Organization"],
-    sentimentOverride: false, // Use semantic colors, not sentiment
-    columnOrder: {
-      // Column 1: Revenue breakdown by segment (sources)
-      "REVENUE STREAM": 1,
-
-      // Column 2: Revenue metrics (aggregates)
-      "REVENUE METRIC": 2,
-
-      // Column 3: Supporting context
-      ORGANIZATION: 3,
-      "CUSTOMER SEGMENT": 3,
-      "GEOGRAPHIC MARKET": 3,
-
-      // Column 4: Time period
-      "TIME PERIOD": 4,
-      DATE: 4,
-
-      // Column 5: Other concepts
-      CONCEPT: 5,
-    },
   },
 
   investment: {
@@ -189,21 +113,8 @@ export const VISUALIZATION_CONFIGS: Record<ArticleType, VisualizationConfig> = {
     name: "Investment Network",
     description: "Network layout showing investment relationships",
     nodeColors: {
-      Article: BASE_COLORS.Article,
-      Organization: BASE_COLORS.Organization,
-      Person: BASE_COLORS.Person,
-
-      // Investment specific
-      Investor: "#8b5cf6", // purple
-      Company: "#3b82f6", // blue
-      Fund: "#6366f1", // indigo
-      Valuation: "#10b981", // green
-      Investment: "#14b8a6", // teal
-      Round: "#06b6d4", // cyan
-
-      Concept: BASE_COLORS.Concept,
-      Date: BASE_COLORS.Date,
-      Location: BASE_COLORS.Location,
+      // Dynamic color generation handles all entity types
+      ...BASE_COLORS,
     },
     layout: {
       type: "force",
@@ -223,7 +134,7 @@ export const VISUALIZATION_CONFIGS: Record<ArticleType, VisualizationConfig> = {
       highlightColor: "#fbbf24",
       animated: true,
     },
-    priorityTypes: ["Investor", "Company", "Valuation"],
+    priorityTypes: [],
     sentimentOverride: true,
   },
 
@@ -232,33 +143,8 @@ export const VISUALIZATION_CONFIGS: Record<ArticleType, VisualizationConfig> = {
     name: "Revenue Breakdown",
     description: "Hierarchical layout showing revenue composition",
     nodeColors: {
-      Article: BASE_COLORS.Article,
-      Organization: BASE_COLORS.Organization,
-      ORGANIZATION: "#8b5cf6", // purple - organizations
-
-      // Revenue specific (both capitalized and uppercase versions)
-      Revenue: BASE_COLORS.Revenue,
-      "REVENUE METRIC": "#10b981", // green - for total/aggregate revenue
-      RevenueStream: "#14b8a6", // teal - for individual revenue streams
-      "REVENUE STREAM": "#14b8a6", // teal - for individual revenue streams
-      Product: "#3b82f6", // blue
-      Service: "#06b6d4", // cyan
-      Customer: "#a855f7", // purple-500
-      "CUSTOMER SEGMENT": "#a855f7", // purple-500 - customer segments
-      Segment: "#c084fc", // purple-400
-      Channel: "#f59e0b", // amber
-      Market: "#f97316", // orange - markets
-      "GEOGRAPHIC MARKET": "#f97316", // orange - geographic markets
-      Metric: BASE_COLORS.Metric,
-
-      // Time and context
-      "TIME PERIOD": "#6366f1", // indigo - time periods
-      Period: "#6366f1", // indigo
-      Concept: "#ec4899", // pink - concepts
-      CONCEPT: "#ec4899", // pink - concepts
-      Date: "#818cf8", // indigo-400
-      DATE: "#818cf8", // indigo-400
-      Location: "#f59e0b", // amber
+      // Dynamic color generation handles all entity types
+      ...BASE_COLORS,
     },
     layout: {
       type: "hierarchical",
@@ -280,220 +166,40 @@ export const VISUALIZATION_CONFIGS: Record<ArticleType, VisualizationConfig> = {
       highlightColor: "#fbbf24",
       animated: true,
     },
-    priorityTypes: ["Revenue", "RevenueStream", "Product", "Customer"],
-    sentimentOverride: false,
-    columnOrder: {
-      // Column 1: Revenue streams
-      RevenueStream: 1,
-      "REVENUE STREAM": 1,
-
-      // Column 2: Total revenue
-      Revenue: 2,
-      "REVENUE METRIC": 2,
-
-      // Column 3: Products and services
-      Product: 3,
-      Service: 3,
-
-      // Column 4: Customers and segments
-      Customer: 4,
-      Segment: 4,
-      "CUSTOMER SEGMENT": 4,
-
-      // Column 5: Channels and markets
-      Channel: 5,
-      Market: 5,
-      "GEOGRAPHIC MARKET": 5,
-
-      // Column 6: Context
-      ORGANIZATION: 6,
-      DATE: 6,
-      "TIME PERIOD": 6,
-      CONCEPT: 6,
-    },
-  },
-
-  "organizational-chart": {
-    articleType: "organizational-chart",
-    name: "Org Chart",
-    description: "Hierarchical layout showing organizational structure",
-    nodeColors: {
-      Article: BASE_COLORS.Article,
-      Organization: BASE_COLORS.Organization,
-      Person: BASE_COLORS.Person,
-
-      // Org structure
-      Division: "#8b5cf6", // purple
-      Department: "#a855f7", // purple-500
-      Team: "#c084fc", // purple-400
-      SubTeam: "#d8b4fe", // purple-300
-
-      // Roles
-      Executive: "#ef4444", // red (high importance)
-      Manager: "#f59e0b", // amber
-      Role: BASE_COLORS.Concept,
-
-      Location: BASE_COLORS.Location,
-      Concept: BASE_COLORS.Concept,
-    },
-    layout: {
-      type: "hierarchical",
-      direction: "TB",
-      spacing: {
-        nodeHorizontal: 220,
-        nodeVertical: 100,
-        sectionGap: 60,
-      },
-      groupBy: "custom", // Custom for org hierarchy
-    },
-    edgeStyle: {
-      defaultWidth: 2,
-      strongWidth: 3,
-      highlightWidth: 4,
-      defaultColor: "#94a3b8",
-      strongColor: "#8b5cf6",
-      highlightColor: "#fbbf24",
-      animated: false,
-    },
-    priorityTypes: ["Person", "Division", "Department", "Team"],
+    priorityTypes: [],
     sentimentOverride: false,
   },
 
-  "security-incident": {
-    articleType: "security-incident",
-    name: "Attack Chain",
-    description: "Flow layout showing attack progression",
+  "mystery-investigation": {
+    articleType: "mystery-investigation",
+    name: "Mystery Investigation",
+    description: "Network layout for solving mysteries and investigations",
     nodeColors: {
-      Article: BASE_COLORS.Article,
-
-      // Threat actors
-      Attacker: "#dc2626", // red-600 (negative)
-      ThreatActor: "#b91c1c", // red-700
-
-      // Victims
-      Victim: "#f59e0b", // amber (warning)
-      Organization: "#f97316", // orange
-
-      // Attack components
-      Vulnerability: "#ef4444", // red
-      Exploit: "#dc2626", // red-600
-      Malware: "#b91c1c", // red-700
-      AttackVector: "#f87171", // red-400
-
-      // Systems
-      System: "#3b82f6", // blue
-      Technology: BASE_COLORS.Technology,
-      Data: "#8b5cf6", // purple
-
-      // Response
-      SecurityTool: "#10b981", // green
-      Detection: "#059669", // emerald-600
-
-      Date: BASE_COLORS.Date,
-      Location: BASE_COLORS.Location,
-      Concept: BASE_COLORS.Concept,
-    },
-    layout: {
-      type: "hierarchical",
-      direction: "LR", // Left to Right for attack flow
-      spacing: {
-        nodeHorizontal: 300,
-        nodeVertical: 120,
-        sectionGap: 80,
-      },
-      groupBy: "custom",
-    },
-    edgeStyle: {
-      defaultWidth: 2.5,
-      strongWidth: 4,
-      highlightWidth: 5,
-      defaultColor: "#94a3b8",
-      strongColor: "#dc2626",
-      highlightColor: "#fbbf24",
-      animated: true,
-    },
-    priorityTypes: ["Attacker", "Victim", "Vulnerability", "System"],
-    sentimentOverride: false, // Use semantic colors
-    columnOrder: {
-      // Column 1: Threat actors
-      Attacker: 1,
-      ThreatActor: 1,
-
-      // Column 2: Attack methods
-      Vulnerability: 2,
-      Exploit: 2,
-      Malware: 2,
-      AttackVector: 2,
-
-      // Column 3: Targets
-      Victim: 3,
-      System: 3,
-      Data: 3,
-
-      // Column 4: Detection and response
-      SecurityTool: 4,
-      Detection: 4,
-
-      // Column 5: Context
-      ORGANIZATION: 5,
-      Technology: 5,
-      DATE: 5,
-      "TIME PERIOD": 5,
-      Location: 5,
-      CONCEPT: 5,
-    },
-  },
-
-  "market-analysis": {
-    articleType: "market-analysis",
-    name: "Market Landscape",
-    description: "Network layout showing competitive landscape",
-    nodeColors: {
-      Article: BASE_COLORS.Article,
-      Organization: BASE_COLORS.Organization,
-
-      // Market players
-      Company: "#3b82f6", // blue
-      Competitor: "#8b5cf6", // purple
-      Leader: "#10b981", // green
-      Challenger: "#f59e0b", // amber
-
-      // Market elements
-      Market: "#ec4899", // pink
-      Segment: "#a855f7", // purple-500
-      Product: "#06b6d4", // cyan
-      Technology: BASE_COLORS.Technology,
-      Trend: "#14b8a6", // teal
-
-      // Metrics
-      MarketShare: "#10b981", // green
-      Metric: BASE_COLORS.Metric,
-
-      Person: BASE_COLORS.Person,
-      Location: BASE_COLORS.Location,
-      Concept: BASE_COLORS.Concept,
-      Date: BASE_COLORS.Date,
+      ...BASE_COLORS,
+      // Mystery-specific colors
+      Evidence: "#ef4444", // red - critical evidence
+      Clue: "#f59e0b", // amber - clues
     },
     layout: {
       type: "force",
       spacing: {
-        nodeHorizontal: 320,
+        nodeHorizontal: 300,
         nodeVertical: 180,
-        sectionGap: 90,
+        sectionGap: 100,
       },
       groupBy: "importance",
     },
     edgeStyle: {
       defaultWidth: 2,
-      strongWidth: 3.5,
+      strongWidth: 4,
       highlightWidth: 5,
       defaultColor: "#94a3b8",
-      strongColor: "#8b5cf6",
+      strongColor: "#ef4444", // red for contradictions
       highlightColor: "#fbbf24",
-      animated: false,
+      animated: true,
     },
-    priorityTypes: ["Company", "Market", "Product", "Trend"],
-    sentimentOverride: true,
+    priorityTypes: [],
+    sentimentOverride: true, // Highlight guilty/suspicious entities
   },
 };
 
@@ -501,6 +207,62 @@ export function getVisualizationConfig(
   articleType: ArticleType
 ): VisualizationConfig {
   return VISUALIZATION_CONFIGS[articleType] || VISUALIZATION_CONFIGS.general;
+}
+
+// Normalize entity type to a consistent format for color matching
+function normalizeEntityType(type: string): string {
+  // Convert to lowercase and remove plurals
+  let normalized = type.toLowerCase().trim();
+
+  // Remove common plural endings
+  if (normalized.endsWith("ies")) {
+    normalized = normalized.slice(0, -3) + "y"; // companies -> company
+  } else if (normalized.endsWith("es")) {
+    normalized = normalized.slice(0, -2); // services -> service
+  } else if (normalized.endsWith("s")) {
+    normalized = normalized.slice(0, -1); // products -> product
+  }
+
+  return normalized;
+}
+
+// Generate a consistent color from a string (deterministic hashing)
+function generateColorFromString(str: string): string {
+  // Normalize the string first
+  const normalized = normalizeEntityType(str);
+
+  // Simple hash function
+  let hash = 0;
+  for (let i = 0; i < normalized.length; i++) {
+    hash = normalized.charCodeAt(i) + ((hash << 5) - hash);
+    hash = hash & hash; // Convert to 32-bit integer
+  }
+
+  // Define a palette of distinct, professional colors
+  const colorPalette = [
+    "#3b82f6", // blue
+    "#8b5cf6", // purple
+    "#10b981", // green
+    "#f59e0b", // amber
+    "#ec4899", // pink
+    "#ef4444", // red
+    "#6366f1", // indigo
+    "#06b6d4", // cyan
+    "#14b8a6", // teal
+    "#f97316", // orange
+    "#a855f7", // purple-500
+    "#c084fc", // purple-400
+    "#059669", // emerald-600
+    "#d946ef", // fuchsia-500
+    "#0ea5e9", // sky-500
+    "#84cc16", // lime-500
+    "#f43f5e", // rose-500
+    "#8b5cf6", // violet-500
+  ];
+
+  // Use hash to select a color from palette
+  const index = Math.abs(hash) % colorPalette.length;
+  return colorPalette[index];
 }
 
 export function getNodeColor(
@@ -514,8 +276,22 @@ export function getNodeColor(
     if (sentiment === "positive") return BASE_COLORS.positive;
   }
 
-  // Use type-specific color from config
-  return config.nodeColors[type] || BASE_COLORS.neutral;
+  // Try exact match first (for special cases like "REVENUE METRIC")
+  if (config.nodeColors[type]) {
+    return config.nodeColors[type];
+  }
+
+  // Try normalized match (handles Person/PERSON/People/PEOPLE)
+  const normalized = normalizeEntityType(type);
+  for (const [key, color] of Object.entries(config.nodeColors)) {
+    if (normalizeEntityType(key) === normalized) {
+      return color;
+    }
+  }
+
+  // Generate consistent color for unknown types
+  // This ensures same entity type always gets same color
+  return generateColorFromString(type);
 }
 
 export function getEdgeStyle(

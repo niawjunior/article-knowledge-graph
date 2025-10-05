@@ -8,6 +8,24 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+// Helper function to determine optimal chapter count based on content complexity
+function determineChapterCount(entityCount: number, relationshipCount: number): { min: number; max: number; recommended: string } {
+  // Simple articles: 1-5 entities
+  if (entityCount <= 5) {
+    return { min: 2, max: 3, recommended: "2-3" };
+  }
+  // Medium articles: 6-15 entities
+  if (entityCount <= 15) {
+    return { min: 3, max: 5, recommended: "3-5" };
+  }
+  // Complex articles: 16-30 entities
+  if (entityCount <= 30) {
+    return { min: 4, max: 6, recommended: "4-6" };
+  }
+  // Very complex articles: 30+ entities
+  return { min: 5, max: 8, recommended: "5-8" };
+}
+
 // Define the story structure with Zod
 const StoryChapterSchema = z.object({
   chapter: z.number(),
@@ -17,9 +35,12 @@ const StoryChapterSchema = z.object({
   duration: z.number().default(5000),
 });
 
-const StorySchema = z.object({
-  chapters: z.array(StoryChapterSchema).min(4).max(6),
-});
+// Dynamic story schema factory
+function createStorySchema(min: number, max: number) {
+  return z.object({
+    chapters: z.array(StoryChapterSchema).min(min).max(max),
+  });
+}
 
 export async function GET(
   request: NextRequest,
@@ -72,6 +93,10 @@ export async function GET(
         .get("relationships")
         .filter((r: any) => r.from && r.to);
 
+      // Determine optimal chapter count based on content complexity
+      const chapterConfig = determineChapterCount(entities.length, relationships.length);
+      const StorySchema = createStorySchema(chapterConfig.min, chapterConfig.max);
+
       // Generate story using OpenAI
       const prompt = `You are a data storytelling expert. Create a concise narrative story about this knowledge graph.
 
@@ -84,7 +109,12 @@ ${entities.map((e: any) => `- ${e.name} (${e.type})${e.description ? `: ${e.desc
 Relationships (${relationships.length}):
 ${relationships.slice(0, 20).map((r: any) => `- ${r.from} → ${r.to} (${r.type})`).join("\n")}
 
-Create a story with 4-6 chapters that guides the reader through this data. Each chapter should:
+Create a story with ${chapterConfig.recommended} chapters that guides the reader through this data. 
+Adjust the number of chapters based on content complexity:
+- For simple articles (few entities), use fewer chapters (${chapterConfig.min}-${chapterConfig.max})
+- For complex articles (many entities), use more chapters to properly cover the content
+
+Each chapter should:
 1. Have a clear, concise title (max 6 words)
 2. Focus on specific entities (mention their exact names)
 3. Have a SHORT narrative (2-3 sentences, max 50 words)

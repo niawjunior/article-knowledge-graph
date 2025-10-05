@@ -18,10 +18,11 @@ import {
   ReactFlowProvider,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowLeft, Loader2, Sparkles } from "lucide-react";
 import CustomNode, { CustomNodeData } from "./CustomNode";
 import { KeyInsight } from "@/lib/graph-operations";
 import GraphQuery from "./GraphQuery";
+import StoryPlayer from "./StoryPlayer";
 import {
   getVisualizationConfig,
   getNodeColor as getConfigNodeColor,
@@ -66,11 +67,7 @@ const getNodeColor = (
   return getConfigNodeColor(type, sentiment, config);
 };
 
-function GraphVisualizationInner({
-  articleId,
-}: {
-  articleId: string;
-}) {
+function GraphVisualizationInner({ articleId }: { articleId: string }) {
   const [nodes, setNodes, onNodesChange] = useNodesState(
     [] as Node<CustomNodeData>[]
   );
@@ -85,6 +82,7 @@ function GraphVisualizationInner({
     number | null
   >(null);
   const [showEdgeLabels, setShowEdgeLabels] = useState(false);
+  const [showStory, setShowStory] = useState(false);
   const router = useRouter();
   const { fitView } = useReactFlow();
 
@@ -148,9 +146,11 @@ function GraphVisualizationInner({
           });
 
           // Calculate total height to center the Article node
-          const firstColumnNodes = nodesByDepth.get(Math.min(...Array.from(nodesByDepth.keys()))) || [];
+          const firstColumnNodes =
+            nodesByDepth.get(Math.min(...Array.from(nodesByDepth.keys()))) ||
+            [];
           const totalHeight = firstColumnNodes.length * rowHeight;
-          const articleY = 50 + (totalHeight / 2) - (rowHeight / 2);
+          const articleY = 50 + totalHeight / 2 - rowHeight / 2;
 
           // Place article node at column 0, centered vertically
           if (articleNode) {
@@ -374,7 +374,7 @@ function GraphVisualizationInner({
       // Small delay to ensure nodes are updated before focusing
       setTimeout(() => {
         fitView({
-          nodes: Array.from(highlightedNodes).map(id => ({ id })),
+          nodes: Array.from(highlightedNodes).map((id) => ({ id })),
           duration: 800, // Smooth animation duration in ms
           padding: 0.3, // 30% padding around the focused nodes
           maxZoom: 1.5, // Don't zoom in too much
@@ -438,7 +438,14 @@ function GraphVisualizationInner({
     });
 
     setEdges(flowEdges);
-  }, [graphData, highlightedNodes, showEdgeLabels, setNodes, setEdges, fitView]);
+  }, [
+    graphData,
+    highlightedNodes,
+    showEdgeLabels,
+    setNodes,
+    setEdges,
+    fitView,
+  ]);
 
   const onNodeClick = useCallback((_event: React.MouseEvent, node: Node) => {
     console.log("Node clicked:", node);
@@ -553,7 +560,7 @@ function GraphVisualizationInner({
             maskColor="rgba(0, 0, 0, 0.1)"
           />
           <Panel position="top-left">
-            <div className="flex flex-col gap-2">
+            <div className="flex  gap-2">
               <button
                 onClick={() => router.push("/")}
                 className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 rounded-lg shadow-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors border border-slate-200 dark:border-slate-600"
@@ -573,6 +580,13 @@ function GraphVisualizationInner({
                   {showEdgeLabels ? "Hide" : "Show"} Labels
                 </span>
               </button>
+              <button
+                onClick={() => setShowStory(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg shadow-lg hover:from-purple-500 hover:to-blue-500 transition-all"
+              >
+                <Sparkles className="w-4 h-4" />
+                <span className="text-sm font-medium">Tell Me The Story</span>
+              </button>
             </div>
           </Panel>
         </ReactFlow>
@@ -582,6 +596,15 @@ function GraphVisualizationInner({
       <div className="w-96">
         <GraphQuery articleId={articleId} onHighlight={handleQueryHighlight} />
       </div>
+
+      {/* Story Player */}
+      {showStory && (
+        <StoryPlayer
+          articleId={articleId}
+          onHighlight={handleQueryHighlight}
+          onClose={() => setShowStory(false)}
+        />
+      )}
     </div>
   );
 }

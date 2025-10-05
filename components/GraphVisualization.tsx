@@ -14,6 +14,8 @@ import {
   MarkerType,
   Panel,
   Position,
+  useReactFlow,
+  ReactFlowProvider,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { ArrowLeft, Loader2 } from "lucide-react";
@@ -64,7 +66,7 @@ const getNodeColor = (
   return getConfigNodeColor(type, sentiment, config);
 };
 
-export default function GraphVisualization({
+function GraphVisualizationInner({
   articleId,
 }: {
   articleId: string;
@@ -84,6 +86,7 @@ export default function GraphVisualization({
   >(null);
   const [showEdgeLabels, setShowEdgeLabels] = useState(false);
   const router = useRouter();
+  const { fitView } = useReactFlow();
 
   const [graphData, setGraphData] = useState<GraphData | null>(null);
 
@@ -346,7 +349,6 @@ export default function GraphVisualization({
   useEffect(() => {
     if (!graphData || nodes.length === 0) return;
 
-
     // Update only the styles of existing nodes, preserving their positions
     setNodes((nds) =>
       nds.map((node) => ({
@@ -366,6 +368,20 @@ export default function GraphVisualization({
         },
       }))
     );
+
+    // Auto-focus on highlighted nodes
+    if (highlightedNodes.size > 0) {
+      // Small delay to ensure nodes are updated before focusing
+      setTimeout(() => {
+        fitView({
+          nodes: Array.from(highlightedNodes).map(id => ({ id })),
+          duration: 800, // Smooth animation duration in ms
+          padding: 0.3, // 30% padding around the focused nodes
+          maxZoom: 1.5, // Don't zoom in too much
+          minZoom: 0.5, // Don't zoom out too much
+        });
+      }, 100);
+    }
 
     // Update edge styles based on highlighting
     const vizConfig = getVisualizationConfig(
@@ -422,7 +438,7 @@ export default function GraphVisualization({
     });
 
     setEdges(flowEdges);
-  }, [graphData, highlightedNodes, showEdgeLabels, setNodes, setEdges]);
+  }, [graphData, highlightedNodes, showEdgeLabels, setNodes, setEdges, fitView]);
 
   const onNodeClick = useCallback((_event: React.MouseEvent, node: Node) => {
     console.log("Node clicked:", node);
@@ -567,5 +583,18 @@ export default function GraphVisualization({
         <GraphQuery articleId={articleId} onHighlight={handleQueryHighlight} />
       </div>
     </div>
+  );
+}
+
+// Wrapper component with ReactFlowProvider
+export default function GraphVisualization({
+  articleId,
+}: {
+  articleId: string;
+}) {
+  return (
+    <ReactFlowProvider>
+      <GraphVisualizationInner articleId={articleId} />
+    </ReactFlowProvider>
   );
 }

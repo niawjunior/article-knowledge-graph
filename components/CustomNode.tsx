@@ -23,7 +23,12 @@ function CustomNode({ data, sourcePosition, targetPosition }: NodeProps<CustomRF
   const isRoot = data.isRoot ?? false;
 
   return (
-    <div className="relative">
+    <div 
+      className="relative transition-all"
+      style={{ zIndex: showTooltip ? 9999 : 1 }}
+      onMouseEnter={() => setShowTooltip(true)}
+      onMouseLeave={() => setShowTooltip(false)}
+    >
       <Handle type="target" position={targetPosition || Position.Top} />
 
       <div
@@ -33,8 +38,6 @@ function CustomNode({ data, sourcePosition, targetPosition }: NodeProps<CustomRF
             : "px-4 py-3 min-w-[150px] max-w-[200px]"
         }`}
         style={{ borderColor: data.color }}
-        onMouseEnter={() => setShowTooltip(true)}
-        onMouseLeave={() => setShowTooltip(false)}
       >
         <div className="flex items-center gap-2 mb-1">
           <div

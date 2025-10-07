@@ -105,15 +105,17 @@ Extract:
    - Entity importance: high (key players), medium (supporting), low (minor mentions)
 
 Rules:
-- Extract ALL relevant entities (8-30 key entities)
+- Extract ALL entities mentioned in the article, even if the content is short
+- For short articles, extract at minimum: all people, all objects/things, all locations, all actions
 - **IMPORTANT: Each unique entity should appear ONLY ONCE** - Do not create duplicate entities
 - If the same person, location, or concept is mentioned multiple times, use the SAME entity ID
 - For example: If "Bangkok" is mentioned 3 times, create ONE entity with id "bangkok", not three separate entities
 - For ages: Create ONE entity per age value (e.g., "31 years old" should be one entity, not multiple)
-- Create meaningful relationships (10-100+ depending on article complexity)
+- Create meaningful relationships showing connections between entities
 - Use specific, actionable relationship types
 - Mark victims/attackers with appropriate sentiment
-- Prioritize entities by their importance to the story`,
+- Prioritize entities by their importance to the story
+- Even simple sentences should extract multiple entities (e.g., "Wife has a cat named COCO" → extract: wife (Person), cat (Concept), COCO (Person/name))`,
   },
   {
     id: "investment",

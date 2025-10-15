@@ -36,7 +36,9 @@ export async function createArticleGraph(
   summary: string,
   entities: Entity[],
   relationships: Relationship[],
-  articleType?: string
+  articleType?: string,
+  mode?: string,
+  ontologyId?: string
 ): Promise<void> {
   const session = getSession();
 
@@ -49,10 +51,30 @@ export async function createArticleGraph(
           a.content = $content,
           a.summary = $summary,
           a.articleType = $articleType,
+          a.mode = $mode,
           a.createdAt = datetime()
       `,
-      { articleId, title, content, summary, articleType: articleType || 'general' }
+      { 
+        articleId, 
+        title, 
+        content, 
+        summary, 
+        articleType: articleType || 'general',
+        mode: mode || 'easy'
+      }
     );
+
+    // Link to ontology if provided
+    if (ontologyId) {
+      await session.run(
+        `
+        MATCH (a:Article {id: $articleId})
+        MATCH (o:Ontology {id: $ontologyId})
+        MERGE (a)-[:USES_ONTOLOGY]->(o)
+        `,
+        { articleId, ontologyId }
+      );
+    }
 
     // Create entity nodes
     for (const entity of entities) {

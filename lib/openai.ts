@@ -102,3 +102,97 @@ Extract entities and relationships following the guidelines above. Ensure:
 
   return extracted;
 }
+
+// Extract entities using custom ontology (Advanced Mode)
+export async function extractEntitiesWithOntology(
+  articleText: string,
+  articleTitle: string,
+  ontology: {
+    name: string;
+    entities: Array<{
+      type: string;
+      description: string;
+      examples?: string[];
+    }>;
+    relationships?: Array<{
+      type: string;
+      description: string;
+      fromType?: string;
+      toType?: string;
+    }>;
+  }
+): Promise<ExtractedData> {
+  // Create dynamic schema based on custom ontology
+  const entityTypes = ontology.entities.map(e => e.type);
+  const ExtractedDataSchema = createExtractedDataSchema(entityTypes as any);
+  
+  // Build ontology description for prompt
+  const entityDescriptions = ontology.entities.map(e => 
+    `- **${e.type}**: ${e.description}${e.examples ? `\n  Examples: ${e.examples.join(', ')}` : ''}`
+  ).join('\n');
+  
+  const relationshipDescriptions = ontology.relationships?.map(r =>
+    `- **${r.type}**: ${r.description}${r.fromType && r.toType ? ` (${r.fromType} → ${r.toType})` : ''}`
+  ).join('\n') || 'Use appropriate relationship types based on the context.';
+
+  const prompt = `You are an expert analyst extracting entities using a custom ontology: "${ontology.name}".
+
+CRITICAL INSTRUCTIONS:
+1. You MUST use ONLY the entity types listed below - NO OTHER TYPES ARE ALLOWED
+2. Do NOT use generic types like "Person", "Organization", "Location", "Date" unless they are explicitly listed below
+3. If something doesn't fit the defined types, DO NOT extract it
+4. Keep all entity names in the SAME LANGUAGE as the original article
+
+**ALLOWED Entity Types (USE ONLY THESE):**
+${entityDescriptions}
+
+**Available Relationship Types:**
+${relationshipDescriptions}
+
+**Extraction Rules:**
+- Extract ONLY entities that match the defined types above
+- If an entity doesn't fit any of the defined types, skip it
+- Each unique entity should appear ONLY ONCE - do not create duplicate entities
+- Use the entity descriptions to understand what each type means
+- Create meaningful relationships between entities
+- All entity IDs must be unique and in kebab-case
+- Keep entity names in the original article language
+- DO NOT invent new entity types - use ONLY the types defined above
+
+Article Title: ${articleTitle || 'Untitled'}
+Article Text:
+${articleText}
+
+Extract entities and relationships following the ontology above. Remember: ONLY use the entity types explicitly defined in the ontology.`;
+
+  const completion = await openai.beta.chat.completions.parse({
+    model: 'gpt-4o-mini',
+    messages: [
+      {
+        role: 'system',
+        content: `You are an expert analyst that extracts structured knowledge graphs using custom ontologies. 
+
+STRICT RULES:
+- You MUST use ONLY the entity types defined in the ontology
+- The allowed entity types are: ${entityTypes.join(', ')}
+- DO NOT use any other entity types
+- If you try to use an entity type not in the list, the extraction will fail
+- Follow the ontology definitions precisely`,
+      },
+      {
+        role: 'user',
+        content: prompt,
+      },
+    ],
+    response_format: zodResponseFormat(ExtractedDataSchema, 'extracted_data'),
+    temperature: 0.1,
+  });
+
+  const extracted = completion.choices[0].message.parsed;
+  
+  if (!extracted) {
+    throw new Error('Failed to parse structured output from OpenAI');
+  }
+
+  return extracted;
+}

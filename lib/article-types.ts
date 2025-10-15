@@ -111,6 +111,11 @@ Rules:
 - If the same person, location, or concept is mentioned multiple times, use the SAME entity ID
 - For example: If "Bangkok" is mentioned 3 times, create ONE entity with id "bangkok", not three separate entities
 - For ages: Create ONE entity per age value (e.g., "31 years old" should be one entity, not multiple)
+- **CRITICAL for Thai names**: 
+  * "พี่แนน" (Pee Nan) and "แนน" (Nan) are the SAME person - use ONE entity
+  * Thai honorifics like "พี่" (Pee), "คุณ" (Khun) are just titles - the core name is the same
+  * Example: "พี่จูน" and "จูน" → ONE entity named "จูน"
+  * When listing multiple people like "แนน เนี้ยว และ เก้า", these are THREE separate people: "แนน", "เนี้ยว", "เก้า"
 - Create meaningful relationships showing connections between entities
 - Use specific, actionable relationship types
 - Mark victims/attackers with appropriate sentiment

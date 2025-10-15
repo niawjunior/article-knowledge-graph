@@ -1,7 +1,18 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { Play, Pause, SkipForward, SkipBack, X, Loader2, Volume2, VolumeX, Minimize2, Maximize2 } from "lucide-react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import {
+  Play,
+  Pause,
+  SkipForward,
+  SkipBack,
+  X,
+  Loader2,
+  Volume2,
+  VolumeX,
+  Minimize2,
+  Maximize2,
+} from "lucide-react";
 
 interface StoryChapter {
   chapter: number;
@@ -44,7 +55,7 @@ export default function StoryPlayer({
   // Fetch story only once per article (with caching)
   useEffect(() => {
     const cacheKey = `story-${articleId}`;
-    
+
     const fetchStory = async () => {
       // Prevent duplicate fetches
       if (isFetchingRef.current) {
@@ -68,10 +79,10 @@ export default function StoryPlayer({
         const response = await fetch(`/api/articles/${articleId}/story`);
         if (!response.ok) throw new Error("Failed to fetch story");
         const data = await response.json();
-        
+
         // Cache the story
         sessionStorage.setItem(cacheKey, JSON.stringify(data.story));
-        
+
         setStory(data.story);
         setIsLoading(false);
       } catch (error) {
@@ -109,10 +120,19 @@ export default function StoryPlayer({
     const playAudio = async () => {
       try {
         // Get chapter from story at the time of execution
-        if (!story || story.length === 0 || !story[currentChapter] || isCancelled) return;
-        
+        if (
+          !story ||
+          story.length === 0 ||
+          !story[currentChapter] ||
+          isCancelled
+        )
+          return;
+
         // Check if we already played this chapter
-        if (lastPlayedChapterRef.current === currentChapter && audioRef.current) {
+        if (
+          lastPlayedChapterRef.current === currentChapter &&
+          audioRef.current
+        ) {
           // Resume existing audio instead of regenerating
           try {
             await audioRef.current.play();
@@ -122,12 +142,12 @@ export default function StoryPlayer({
             console.log("Resume failed, regenerating audio");
           }
         }
-        
+
         const chapter = story[currentChapter];
 
         setIsGeneratingAudio(true);
         lastPlayedChapterRef.current = currentChapter;
-        
+
         // Stop previous audio if playing
         if (audioRef.current) {
           audioRef.current.pause();
@@ -150,7 +170,7 @@ export default function StoryPlayer({
 
         // Create blob URL from streaming response
         const blob = await response.blob();
-        
+
         if (isCancelled) {
           return;
         }
@@ -159,7 +179,7 @@ export default function StoryPlayer({
 
         // Create and play audio
         const audio = new Audio(audioUrl);
-        
+
         if (isCancelled) {
           URL.revokeObjectURL(audioUrl);
           return;
@@ -168,7 +188,7 @@ export default function StoryPlayer({
         audioRef.current = audio;
 
         // Wait for metadata to get duration
-        audio.addEventListener('loadedmetadata', () => {
+        audio.addEventListener("loadedmetadata", () => {
           if (!isCancelled) {
             setIsGeneratingAudio(false);
             // Note: We don't update story state here to avoid re-triggering the effect
@@ -196,7 +216,6 @@ export default function StoryPlayer({
             setIsGeneratingAudio(false);
           }
         }
-
       } catch (error) {
         if (!isCancelled) {
           console.error("Error playing audio:", error);
@@ -381,7 +400,8 @@ export default function StoryPlayer({
           <div className="flex-1">
             <p className="text-sm font-medium truncate">{chapter.title}</p>
             <p className="text-xs text-slate-400">
-              Chapter {chapter.chapter} of {story.length} • {Math.round(progress)}% complete
+              Chapter {chapter.chapter} of {story.length} •{" "}
+              {Math.round(progress)}% complete
             </p>
           </div>
 

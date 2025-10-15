@@ -45,7 +45,7 @@ export default function ArticleList() {
           No articles yet. Create your first one!
         </p>
       ) : (
-        <div className="space-y-2 overflow-y-auto h-[calc(100vh-355px)]">
+        <div className="space-y-2 overflow-y-auto h-[calc(100vh-400px)]">
           {articles.map((article) => (
             <Link
               key={article.id}

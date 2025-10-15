@@ -18,11 +18,12 @@ import {
   ReactFlowProvider,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-import { ArrowLeft, Loader2, Sparkles } from "lucide-react";
+import { ArrowLeft, Loader2, Sparkles, FileEdit } from "lucide-react";
 import CustomNode, { CustomNodeData } from "./CustomNode";
 import { KeyInsight } from "@/lib/graph-operations";
 import GraphQuery from "./GraphQuery";
 import StoryPlayer from "./StoryPlayer";
+import ArticleEditor from "./ArticleEditor";
 import {
   getVisualizationConfig,
   getNodeColor as getConfigNodeColor,
@@ -83,6 +84,7 @@ function GraphVisualizationInner({ articleId }: { articleId: string }) {
   >(null);
   const [showEdgeLabels, setShowEdgeLabels] = useState(false);
   const [showStory, setShowStory] = useState(false);
+  const [showArticleEditor, setShowArticleEditor] = useState(false);
   const router = useRouter();
   const { fitView } = useReactFlow();
 
@@ -587,6 +589,13 @@ function GraphVisualizationInner({ articleId }: { articleId: string }) {
                 <Sparkles className="w-4 h-4" />
                 <span className="text-sm font-medium">Tell Me The Story</span>
               </button>
+              <button
+                onClick={() => setShowArticleEditor(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg shadow-lg hover:bg-green-700 transition-colors"
+              >
+                <FileEdit className="w-4 h-4" />
+                <span className="text-sm font-medium">View/Edit Article</span>
+              </button>
             </div>
           </Panel>
         </ReactFlow>
@@ -603,6 +612,19 @@ function GraphVisualizationInner({ articleId }: { articleId: string }) {
           articleId={articleId}
           onHighlight={handleQueryHighlight}
           onClose={() => setShowStory(false)}
+        />
+      )}
+
+      {/* Article Editor */}
+      {showArticleEditor && (
+        <ArticleEditor
+          articleId={articleId}
+          onClose={() => setShowArticleEditor(false)}
+          onSave={() => {
+            setShowArticleEditor(false);
+            // Reload the page to refresh the graph
+            window.location.reload();
+          }}
         />
       )}
     </div>
